@@ -1,7 +1,14 @@
+// Expressをインポート
 const express = require('express');
 const app = express();
+// sqlite3をインポート
 const sqlit3 = require('sqlite3');
 const dbPath = 'app/db/database.sqlite3';
+// 静的ファイルのためのインポート
+const path = require('path');
+
+// 静的ファイルを設定
+app.use(express.static(path.join(__dirname, 'public')));
 
 // usersを全件取得
 app.get('/api/v1/users', (req, res) => {
@@ -40,7 +47,7 @@ app.get('/api/v1/users/:id', (req, res) => {
 });
 
 // 検索のAPI
-// ex) /api/v1/users/serach?q=keyword
+// ex) /api/v1/serach?q=keyword
 app.get('/api/v1/search', (req, res) => {
   // DBに接続
   const db = new sqlit3.Database(dbPath);
@@ -60,7 +67,7 @@ app.get('/api/v1/search', (req, res) => {
   db.close();
 });
 
-
+// ポート3000で公開、リクエストを受付
 const port = process.env.PORT || 3000;
 app.listen(port);
 console.log('Listen on port: ' + port);
