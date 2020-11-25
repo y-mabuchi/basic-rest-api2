@@ -27,6 +27,7 @@ const searchModule = (() => {
                 </tr>`;
       };
 
+      // innerHTMLは中身をまるっと書き換える
       document.getElementById('users-list').innerHTML = body;
     }
   }

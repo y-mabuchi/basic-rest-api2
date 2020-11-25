@@ -32,6 +32,7 @@ const usersModule = (() => {
                       </tr>`;
 
         // beforeendで中身の末尾にデータを追加していく
+        // insertAdjacentHTMLは既存のデータを保持する
         document.getElementById('users-list').insertAdjacentHTML('beforeend', body);
       }
     }
