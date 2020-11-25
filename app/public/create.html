@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Re:ゼロから始めるWeb API入門実践編</title>
+  <!-- Load scripts -->
+  <!-- 呼び出す側(index.js)は、あとから呼び出さないとエラーになる -->
+  <script src="js/users.js" defer></script>
+  <script src="js/search.js" defer></script>
+  <script src="js/index.js" defer></script>
+</head>
+
+<body>
+  <main>
+    <h1>Re:ゼロから始めるユーザー作成</h1>
+    <label for="uid">ID</label>
+    <input type="text" id="uid" placeholder="自動採番されます" disabled />
+
+    <label for="name">ユーザー名</label>
+    <input type="text" id="name" />
+
+    <label for="proflile">プロフィール</label>
+    <input type="text" id="profile" />
+
+    <label for="date-of-birth">誕生日</label>
+    <input type="text" id="date-of-birth" />
+
+    <button id="save-btn">保存する</button>
+    <button id="cancel-btn">キャンセル</button>
+    </table>
+  </main>
+</body>
+
+</html>

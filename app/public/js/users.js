@@ -35,6 +35,20 @@ const usersModule = (() => {
         // insertAdjacentHTMLは既存のデータを保持する
         document.getElementById('users-list').insertAdjacentHTML('beforeend', body);
       }
+    },
+    // HTMLから送信されたデータを取得して、DBに保存する
+    createUser: async () => {
+      // フォームの値を取得する
+      const name = document.getElementById('name');
+      const profile = document.getElementById('profile');
+      const dateOfBirth = document.getElementById('dateOfBirth');
+
+      // リクエストボディを作成する
+      const body = {
+        name: name,
+        profile: profile,
+        date_of_birth: dateOfBirth
+      };
     }
   }
 })();
