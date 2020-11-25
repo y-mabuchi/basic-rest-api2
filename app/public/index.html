@@ -6,6 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Re:ゼロから始めるWeb API入門実践編</title>
   <!-- Load scripts -->
+  <!-- 呼び出す側(index.js)は、あとから呼び出さないとエラーになる -->
+  <script src="js/users.js" defer></script>
+  <script src="js/search.js" defer></script>
+  <script src="js/index.js" defer></script>
 </head>
 
 <body>
@@ -25,7 +29,7 @@
           <th>更新日時</th>
         </tr>
       </thead>
-      <!-- JavaScriptでAPIと通信して、結果を追加すｒ -->
+      <!-- JavaScriptでAPIと通信して、結果を追加する -->
       <tbody id="users-list">
 
       </tbody>

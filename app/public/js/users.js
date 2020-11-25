@@ -30,10 +30,10 @@ const usersModule = (() => {
                         <td>${user.created_at}</td>
                         <td>${user.updated_at}</td>
                       </tr>`;
-      }
 
-      // beforeendで中身の末尾にデータを追加していく
-      document.getElementById('users-list').insertAdjacentHTML('beforeend', body);
+        // beforeendで中身の末尾にデータを追加していく
+        document.getElementById('users-list').insertAdjacentHTML('beforeend', body);
+      }
     }
   }
 })();
