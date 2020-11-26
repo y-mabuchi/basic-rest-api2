@@ -33,6 +33,31 @@ app.get('/api/v1/users', (req, res) => {
   db.close();
 });
 
+// followingを取得する
+app.get('/api/v1/users/:id/following', (req, res) => {
+  // DBに接続
+  const db = new sqlit3.Database(dbPath);
+  // idを取得
+  const id = req.params.id;
+
+  // SQL文を作成する
+  const sql = `SELECT * FROM following LEFT JOIN users ON following.followed_id = users.id WHERE following_id=${id}`;
+
+  // 全件取得なのでallを使う
+  db.all(sql, (err, rows) => {
+    if (!rows) {
+      res.status(404).send({ message: 'Not found.' });
+    } else {
+      res.status(200).json(rows);
+    }
+  });
+
+  // DBをクローズ
+  db.close();
+});
+
+
+
 // 単一のuserのAPI
 app.get('/api/v1/users/:id', (req, res) => {
   // DBに接続
