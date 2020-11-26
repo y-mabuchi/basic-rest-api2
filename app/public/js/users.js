@@ -5,6 +5,10 @@ const usersModule = (() => {
   // ベースURLを設定
   const BASE_URL = 'http://localhost:3000/api/v1/users';
 
+  // ヘッダーの設定
+  const headers = new Headers();
+  headers.set('Content-Type', 'application/json');
+
   // usersModuleの中で使えるメソッドを定義していく
   return {
     // awaitを使いたいので、asyncを使う
@@ -39,9 +43,9 @@ const usersModule = (() => {
     // HTMLから送信されたデータを取得して、DBに保存する
     createUser: async () => {
       // フォームの値を取得する
-      const name = document.getElementById('name');
-      const profile = document.getElementById('profile');
-      const dateOfBirth = document.getElementById('dateOfBirth');
+      const name = document.getElementById('name').value;
+      const profile = document.getElementById('profile').value;
+      const dateOfBirth = document.getElementById('date-of-birth').value;
 
       // リクエストボディを作成する
       const body = {
@@ -49,6 +53,22 @@ const usersModule = (() => {
         profile: profile,
         date_of_birth: dateOfBirth
       };
+
+      const res = await fetch(BASE_URL, {
+        method: 'POST',
+        headers: headers,
+        // bodyはJavaScriptのオブジェクトなので、
+        // JSON.stringifyでJSONに変換してあげる
+        body: JSON.stringify(body)
+      });
+
+      // jsonメソッドは非同期処理なので、awaitで処理を待つ
+      const resJson = await res.json();
+
+      alert(resJson.message);
+
+      // トップページへ遷移させる
+      window.location.href = '/';
     }
   }
 })();
