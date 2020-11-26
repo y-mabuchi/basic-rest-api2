@@ -9,6 +9,41 @@ const usersModule = (() => {
   const headers = new Headers();
   headers.set('Content-Type', 'application/json');
 
+  // エラー処理の共通化
+  const handleError = async (res) => {
+    // jsonメソッドは非同期処理なので、awaitで処理を待つ
+    const resJson = await res.json();
+
+    switch (res.status) {
+      case 200:
+        alert(resJson.message);
+        // トップページへ遷移させる
+        window.location.href = '/';
+        break;
+      case 201:
+        alert(resJson.message);
+        // トップページへ遷移させる
+        window.location.href = '/';
+        break;
+      case 400:
+        // リクエストのパラメータ間違い
+        alert(resJson.error);
+        break;
+      case 404:
+        // 指定したリソースが見つからない
+        alert(resJson.error);
+        break;
+      case 500:
+        // サーバーの内部エラー
+        alert(resJson.error);
+        break;
+      default:
+        alert('なんらかのエラーが発生しました。');
+        break;
+    }
+
+  };
+
   // usersModuleの中で使えるメソッドを定義していく
   return {
     // awaitを使いたいので、asyncを使う
@@ -63,13 +98,7 @@ const usersModule = (() => {
         body: JSON.stringify(body)
       });
 
-      // jsonメソッドは非同期処理なので、awaitで処理を待つ
-      const resJson = await res.json();
-
-      alert(resJson.message);
-
-      // トップページへ遷移させる
-      window.location.href = '/';
+      return handleError(res);
     },
     // ユーザー情報をフォームに入力する
     setExistingValue: async (uid) => {
@@ -102,13 +131,7 @@ const usersModule = (() => {
         body: JSON.stringify(body)
       });
 
-      // jsonメソッドは非同期処理なので、awaitで処理を待つ
-      const resJson = await res.json();
-
-      alert(resJson.message);
-
-      // トップページへ遷移させる
-      window.location.href = '/';
+      return handleError(res);
     },
     // 削除用の関数
     deleteUser: async (uid) => {
@@ -122,9 +145,7 @@ const usersModule = (() => {
           headers: headers
         });
 
-        const resJson = await res.json();
-        alert(resJson.message);
-        window.location.href = '/';
+        return handleError(res);
       }
     }
   }

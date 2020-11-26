@@ -45,9 +45,13 @@ app.get('/api/v1/users/:id', (req, res) => {
   // 単一なのでgetを使う
   // バッククォーテーションでテンプレートリテラルを使う
   db.get(`SELECT * FROM users WHERE id = ${id}`, (err, row) => {
-    // エラー処理については書かない
-    // まずは正常系だけ
-    res.json(row);
+    // 見つからなかった場合
+    if (!row) {
+      res.status(404).send({ error: '指定されたユーザーが見つかりません。' });
+    } else {
+      // 正常なので、ステータスコード200を設定後、JSONを返す
+      res.status(200).json(row);
+    }
   });
 
   // DBをクローズ
@@ -76,17 +80,15 @@ app.get('/api/v1/search', (req, res) => {
 });
 
 // DBクエリを実行する関数を作成する（非同期処理のため）
-const run = async (sql, db, res, message) => {
+const run = async (sql, db) => {
   // DBの処理が成功したのか、失敗したのか待ちたいので、Promiseを返す
   return new Promise((resolve, reject) => {
     db.run(sql, (err) => {
       if (err) {
-        // 500番はサーバー側のエラー
-        res.status(500).send(err)
         // rejectメソッドを返して関数が終了する
-        return reject();
+        // 使用する側でtry-catchできるようにエラーを設定
+        return reject(err);
       } else {
-        res.json({ message: message });
         return resolve();
       }
     });
@@ -96,51 +98,73 @@ const run = async (sql, db, res, message) => {
 // ユーザー作成用のAPI
 // runでawaitを使いたいので、asyncにする
 app.post('/api/v1/users', async (req, res) => {
-  // DBに接続
-  const db = new sqlit3.Database(dbPath);
+  // 名前がnullか空だったら
+  if (!req.body.name || req.body.name === '') {
+    res.status(400).send({ error: 'ユーザー名が指定されていません。' });
+  } else {
+    // DBに接続
+    const db = new sqlit3.Database(dbPath);
 
-  // name,profile,date_of_birthの値が来る
-  const name = req.body.name;
-  // 三項演算子で、存在していれば値を入れて、そうでなければ空文字を入れる
-  const profile = req.body.profile ? req.body.profile : '';
-  const dateOfBirth = req.body.date_of_birth ? req.body.date_of_birth : '';
+    // name,profile,date_of_birthの値が来る
+    const name = req.body.name;
+    // 三項演算子で、存在していれば値を入れて、そうでなければ空文字を入れる
+    const profile = req.body.profile ? req.body.profile : '';
+    const dateOfBirth = req.body.date_of_birth ? req.body.date_of_birth : '';
 
-  // awaitにしているので、rejectかresolveが返ってくるまで待つ
-  // すべて文字列型で渡すので、変数の前後をダブルクォーテーションで囲う
-  await run(
-    `INSERT INTO users (name, profile, date_of_birth) VALUES ("${name}", "${profile}", "${dateOfBirth}")`,
-    db,
-    res,
-    '新規ユーザーを作成しました！'
-  );
+    // awaitにしているので、rejectかresolveが返ってくるまで待つ
+    // すべて文字列型で渡すので、変数の前後をダブルクォーテーションで囲う
+    try {
+      await run(
+        `INSERT INTO users (name, profile, date_of_birth) VALUES ("${name}", "${profile}", "${dateOfBirth}")`,
+        db,
+      );
+      // データ作成の成功なので、ステータスコードは201
+      res.status(201).send({ message: '新規ユーザーを作成しました。' });
+    } catch (e) {
+      // runファンクションでエラーを設定しているので
+      // runが失敗するとこちらに制御が移る
+      res.status(500).send({ error: e });
+    }
 
-  // DBをクローズ
-  db.close();
+    // DBをクローズ
+    db.close();
+  }
 });
 
 // ユーザーデータを更新する
 app.put('/api/v1/users/:id', async (req, res) => {
-  // DBに接続
-  const db = new sqlit3.Database(dbPath);
-  const id = req.params.id;
+  // 名前がnullか空だったら
+  if (!req.body.name || req.body.name === '') {
+    res.status(400).send({ error: 'ユーザー名が指定されていません。' });
+  } else {
+    // DBに接続
+    const db = new sqlit3.Database(dbPath);
+    const id = req.params.id;
 
-  // 現在のユーザー情報を取得して、リクエストにデータが入っていたらそれらを
-  // そうでなければ、元のデータを使うようにする
-  db.get(`SELECT * FROM users WHERE id=${id}`, async (err, row) => {
-    const name = req.body.name ? req.body.name : row.name;
-    const profile = req.body.profile ? req.body.profile : row.profile;
-    const dateOfBirth = req.body.date_of_birth ? req.body.date_of_birth : row.date_of_birth;
+    // 現在のユーザー情報を取得して、リクエストにデータが入っていたらそれらを
+    // そうでなければ、元のデータを使うようにする
+    db.get(`SELECT * FROM users WHERE id=${id}`, async (err, row) => {
+      if (!row) {
+        res.status(404).send({ error: '指定されたユーザーが見つかりません。' });
+      } else {
+        const name = req.body.name ? req.body.name : row.name;
+        const profile = req.body.profile ? req.body.profile : row.profile;
+        const dateOfBirth = req.body.date_of_birth ? req.body.date_of_birth : row.date_of_birth;
 
-    await run(
-      `UPDATE users SET name="${name}", profile="${profile}", date_of_birth="${dateOfBirth}" WHERE id=${id}`,
-      db,
-      res,
-      'ユーザー情報を更新しました！'
-    );
-
+        try {
+          await run(
+            `UPDATE users SET name="${name}", profile="${profile}", date_of_birth="${dateOfBirth}" WHERE id=${id}`,
+            db,
+          );
+          res.status(200).send({ message: 'ユーザー情報を更新しました' });
+        } catch (e) {
+          res.status(500).send({error: e})
+        }
+      }
+    });
     // DBをクローズ
     db.close();
-  });
+  }
 });
 
 // ユーザー情報の削除用API
@@ -149,15 +173,23 @@ app.delete('/api/v1/users/:id', async (req, res) => {
   const db = new sqlit3.Database(dbPath);
   const id = req.params.id;
 
+
   // 現在のユーザー情報を取得して、リクエストにデータが入っていたらそれらを
   // そうでなければ、元のデータを使うようにする
   db.get(`SELECT * FROM users WHERE id=${id}`, async (err, row) => {
-    await run(
-      `DELETE FROM users WHERE id=${id}`,
-      db,
-      res,
-      'ユーザー情報を削除しました！'
-    );
+    if (!row) {
+      res.status(404).send({ error: 'Not Found!' });
+    } else {
+      try {
+        await run(
+          `DELETE FROM users WHERE id=${id}`,
+          db
+        );
+        res.status(200).send({ message: 'ユーザーを削除しました。' });
+      } catch (e) {
+        res.status(500).send({ error: e });
+      }
+    }
 
     // DBをクローズ
     db.close();
