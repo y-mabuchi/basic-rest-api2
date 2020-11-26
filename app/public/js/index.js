@@ -31,6 +31,31 @@ const indexModule = (() => {
       
       break;
 
+    // edit.htmlにアクセスしたら
+    case '/edit.html':
+      // URLからuidを取り出す
+      const uid = window.location.search.split('?uid=')[1];
+
+      // 保存ボタンがクリックされたとき
+      document.getElementById('save-btn')
+        .addEventListener('click', () => {
+          return usersModule.saveUser(uid);
+        });
+      
+      // キャンセルボタンがクリックされたとき
+      document.getElementById('cancel-btn')
+        .addEventListener('click', () => {
+          return window.location.href = '/';
+        });
+      
+      // 削除ボタンがクリックされたとき
+      document.getElementById('delete-btn')
+        .addEventListener('click', () => {
+          return usersModule.deleteUser(uid);
+        });
+
+      return usersModule.setExistingValue(uid);
+
     default:
       break;
   }

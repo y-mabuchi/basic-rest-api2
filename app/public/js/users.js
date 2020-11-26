@@ -33,6 +33,7 @@ const usersModule = (() => {
                         <td>${user.date_of_birth}</td>
                         <td>${user.created_at}</td>
                         <td>${user.updated_at}</td>
+                        <td><a href="edit.html?uid=${user.id}">編集</a></td>
                       </tr>`;
 
         // beforeendで中身の末尾にデータを追加していく
@@ -69,6 +70,62 @@ const usersModule = (() => {
 
       // トップページへ遷移させる
       window.location.href = '/';
+    },
+    // ユーザー情報をフォームに入力する
+    setExistingValue: async (uid) => {
+      const res = await fetch(BASE_URL + '/' + uid);
+      const resJson = await res.json();
+
+      document.getElementById('name').value = resJson.name;
+      document.getElementById('profile').value = resJson.profile;
+      document.getElementById('date-of-birth').value = resJson.date_of_birth;
+    },
+    // データを編集する
+    saveUser: async (uid) => {
+      // フォームの値を取得する
+      const name = document.getElementById('name').value;
+      const profile = document.getElementById('profile').value;
+      const dateOfBirth = document.getElementById('date-of-birth').value;
+
+      // リクエストボディを作成する
+      const body = {
+        name: name,
+        profile: profile,
+        date_of_birth: dateOfBirth
+      };
+
+      const res = await fetch(BASE_URL + '/' + uid, {
+        method: 'PUT',
+        headers: headers,
+        // bodyはJavaScriptのオブジェクトなので、
+        // JSON.stringifyでJSONに変換してあげる
+        body: JSON.stringify(body)
+      });
+
+      // jsonメソッドは非同期処理なので、awaitで処理を待つ
+      const resJson = await res.json();
+
+      alert(resJson.message);
+
+      // トップページへ遷移させる
+      window.location.href = '/';
+    },
+    // 削除用の関数
+    deleteUser: async (uid) => {
+      const ret = window.confirm('このユーザーを削除しますか？');
+
+      if (!ret) {
+        return false;
+      } else {
+        const res = await fetch(BASE_URL + '/' + uid, {
+          method: 'DELETE',
+          headers: headers
+        });
+
+        const resJson = await res.json();
+        alert(resJson.message);
+        window.location.href = '/';
+      }
     }
   }
 })();
