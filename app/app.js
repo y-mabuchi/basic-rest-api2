@@ -77,6 +77,56 @@ app.get('/api/v1/users/:id/following/:followed_id', (req, res) => {
       res.status(200).json(row);
     }
   });
+
+  // DBをクローズ
+  db.close();
+});
+
+// フォローするAPI
+app.post('/api/v1/users/:id/following/:followed_id', async (req, res) => {
+  // パラメータを取得
+  const userId = req.params.id;
+  const followedId = req.params.followed_id;
+
+  // 自分をフォローできないようにする
+  if (userId === followedId) {
+    res.status(400).send({error: '自分をフォローすることはできません。'});
+    return;
+  }
+
+  // DBに接続
+  const db = new sqlit3.Database(dbPath);
+
+  // すでにフォローしているかチェックする
+  const isFollowingSql = `SELECT * FROM following WHERE following_id=${userId} AND followed_id=${followedId}`;
+
+  db.get(isFollowingSql, (err, row) => {
+    if (err) {
+      res.status(500).send({ error: err });
+      db.close();
+      return;
+    }
+    if (row) {
+      res.status(400).send({ error: 'すでにフォローしています。' });
+      db.close();
+      return;
+    }
+  });
+
+  // SQLを作成
+  const sql = `INSERT INTO following (following_id, followed_id) VALUES (${userId}, ${followedId})`;
+
+  // クエリ実行(runメソッドを利用)
+  try {
+    await run(sql, db);
+    res.status(201).send({message: 'フォローしました'});
+  } catch (e) {
+    // エラー処理
+    res.status(500).send({ error: e });
+  }
+
+  // DBをクローズ
+  db.close();
 });
 
 // 単一のuserのAPI
