@@ -56,7 +56,28 @@ app.get('/api/v1/users/:id/following', (req, res) => {
   db.close();
 });
 
+// フォローしているユーザー情報を取得
+app.get('/api/v1/users/:id/following/:followed_id', (req, res) => {
+  // DBに接続
+  const db = new sqlit3.Database(dbPath);
 
+  // パラメータを取得
+  const id = req.params.id;
+  const followedId = req.params.followed_id;
+  
+  // SQLを作成
+  const sql = `SELECT * FROM following LEFT JOIN users ON following.followed_id=users.id WHERE following_id=${id} AND followed_id=${followedId};`;
+
+  // クエリ実行(単一データなのでdb.get())
+  db.get(sql, (err, row) => {
+    if (!row) {
+      res.status(404).send({ error: 'User is not found.' });
+    } else {
+      // データを返す
+      res.status(200).json(row);
+    }
+  });
+});
 
 // 単一のuserのAPI
 app.get('/api/v1/users/:id', (req, res) => {
