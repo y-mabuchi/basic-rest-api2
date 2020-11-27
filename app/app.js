@@ -17,23 +17,7 @@ app.use(bodyParser.json());
 // 静的ファイルを設定
 app.use(express.static(path.join(__dirname, 'public')));
 
-// usersを全件取得
-app.get('/api/v1/users', (req, res) => {
-  // DBに接続
-  const db = new sqlit3.Database(dbPath);
-
-  // 全件取得なのでallを使う
-  db.all('SELECT * FROM users', (err, rows) => {
-    // エラー処理については書かない
-    // まずは正常系だけ
-    res.json(rows);
-  });
-
-  // DBをクローズ
-  db.close();
-});
-
-// followingを取得する
+// フォローしているユーザー一覧を取得する
 app.get('/api/v1/users/:id/following', (req, res) => {
   // DBに接続
   const db = new sqlit3.Database(dbPath);
@@ -124,6 +108,71 @@ app.post('/api/v1/users/:id/following/:followed_id', async (req, res) => {
     // エラー処理
     res.status(500).send({ error: e });
   }
+
+  // DBをクローズ
+  db.close();
+});
+
+/**
+ * フォローを解除するAPI
+ */
+app.delete('/api/v1/users/:id/following/:followed_id', async (req, res) => {
+  // 存在チェック
+  // DB接続
+  const db = new sqlit3.Database(dbPath);
+
+  // パラメータ取得
+  const userId = req.params.id;
+  const followedId = req.params.followed_id;
+
+  // チェック用SQL作成
+  const existFollowSql = `SELECT * FROM following WHERE following_id=${userId} AND followed_id=${followedId}`;
+
+  // SQL実行(1件取得なので、db.get)
+  db.get(existFollowSql, (err, row) => {
+    // サーバーエラー
+    if (err) {
+      res.status(500).send({ error: err });
+      db.close();
+      return;
+    }
+
+    // 存在していなかったらエラー処理
+    if (!row) {
+      res.status(404).send({ error: 'フォローしていません。' });
+      // DBクローズ
+      db.close();
+      return;
+    }
+  });
+
+  // 存在していたらフォロー解除処理
+  // フォロー解除用SQL作成
+  const unFollowSql = `DELETE FROM following WHERE following_id=${userId} AND followed_id=${followedId}`;
+
+  // SQL実行(runメソッド)
+  try {
+    await run(unFollowSql, db);
+    res.status(200).send({message: 'フォローを解除しました。'});
+  } catch (e) {
+    res.status(500).send({ error: e });
+  }
+
+  // DBクローズ
+  db.close();
+});
+
+// usersを全件取得
+app.get('/api/v1/users', (req, res) => {
+  // DBに接続
+  const db = new sqlit3.Database(dbPath);
+
+  // 全件取得なのでallを使う
+  db.all('SELECT * FROM users', (err, rows) => {
+    // エラー処理については書かない
+    // まずは正常系だけ
+    res.json(rows);
+  });
 
   // DBをクローズ
   db.close();
@@ -268,7 +317,6 @@ app.delete('/api/v1/users/:id', async (req, res) => {
   // DBに接続
   const db = new sqlit3.Database(dbPath);
   const id = req.params.id;
-
 
   // 現在のユーザー情報を取得して、リクエストにデータが入っていたらそれらを
   // そうでなければ、元のデータを使うようにする
