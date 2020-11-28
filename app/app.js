@@ -54,6 +54,41 @@ app.get('/api/v1/users/:id/followers', (req, res) => {
   db.close();
 });
 
+// フォロワー情報の取得API
+app.get('/api/v1/users/:id/followers/:follower_id', (req, res) => {
+  // DB接続
+  const db = new sqlit3.Database(dbPath);
+  
+  // パラメータ取得
+  const userId = req.params.id;
+  const followerId = req.params.follower_id;
+
+  // SQL文作成
+  const sql = `SELECT * FROM following LEFT JOIN users ON following.following_id=users.id WHERE followed_id=${userId} AND following_id=${followerId};`;
+
+  // SQL実行(db.get)
+  db.get(sql, (err, row) => {
+    // エラー処理
+    if (err) {
+      res.status(500).send({ error: err });
+      db.close();
+      return;
+    }
+
+    // 見つからなかったとき
+    if (!row) {
+      res.status(404).send({ error: 'フォロワーのユーザー情報を取得できませんでした。' });
+      db.close();
+      return;
+    }
+
+    // 正常処理
+    res.status(200).json(row);
+  });
+  // DBクローズ
+  db.close();
+})
+
 // フォローしているユーザー一覧を取得する
 app.get('/api/v1/users/:id/following', (req, res) => {
   // DBに接続
