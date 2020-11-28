@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Re:ゼロから始めるWeb API入門実践編</title>
+  <!-- Load scripts -->
+  <!-- 呼び出す側(index.js)は、あとから呼び出さないとエラーになる -->
+  <script src="js/users.js" defer></script>
+  <script src="js/search.js" defer></script>
+  <script src="js/index.js" defer></script>
+</head>
+
+<body>
+  <!-- header -->
+  <header class="header">
+    <h1>Re:ゼロから始めるユーザーページ</h1>
+  </header><!-- /header -->
+
+  <!-- main -->
+  <main class="main">
+    <!-- info -->
+    <section class="info">
+      <h2 class="info-tit">user information</h2>
+      <div>
+        <label for="name">name:</label>
+        <input type="text" id="name" readonly>
+      </div>
+      <div>
+        <label for="profile">profile:</label>
+        <input type="text" id="profile" readonly>
+      </div>
+      <div>
+        <label for="date-of-birth">date of birth:</label>
+        <input type="text" id="date-of-birth" readonly>
+      </div>
+    </section><!-- /info -->
+
+  </main><!-- /main -->
+</body>
+
+</html>
