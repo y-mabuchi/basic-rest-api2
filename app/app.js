@@ -17,6 +17,43 @@ app.use(bodyParser.json());
 // 静的ファイルを設定
 app.use(express.static(path.join(__dirname, 'public')));
 
+/**
+ * フォロワー一覧を取得するAPI
+ */
+app.get('/api/v1/users/:id/followers', (req, res) => {
+  // DBに接続
+  const db = new sqlit3.Database(dbPath);
+
+  // パラメータからIDを取得
+  const userId = req.params.id;
+
+  // SQL文を作成
+  const sql = `SELECT * FROM following LEFT JOIN users ON following.following_id=users.id WHERE followed_id=${userId};`;
+
+  // SQLを実行(db.all)
+  db.all(sql, (err, rows) => {
+    // エラーのとき
+    if (err) {
+      res.status(500).send({ error: err });
+      db.close();
+      return;
+    }
+
+    // フォロワーがいないとき404
+    if (!rows) {
+      res.status(404).send({ error: 'フォロワーが見つかりませんでした。' });
+      db.close();
+      return;
+    }
+
+    // フォロワーがいたとき200
+    res.status(200).json(rows);
+  });
+
+  // DBクローズ
+  db.close();
+});
+
 // フォローしているユーザー一覧を取得する
 app.get('/api/v1/users/:id/following', (req, res) => {
   // DBに接続
