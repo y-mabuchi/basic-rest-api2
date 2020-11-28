@@ -17,23 +17,79 @@ app.use(bodyParser.json());
 // 静的ファイルを設定
 app.use(express.static(path.join(__dirname, 'public')));
 
-// usersを全件取得
-app.get('/api/v1/users', (req, res) => {
+/**
+ * フォロワー一覧を取得するAPI
+ */
+app.get('/api/v1/users/:id/followers', (req, res) => {
   // DBに接続
   const db = new sqlit3.Database(dbPath);
 
-  // 全件取得なのでallを使う
-  db.all('SELECT * FROM users', (err, rows) => {
-    // エラー処理については書かない
-    // まずは正常系だけ
-    res.json(rows);
+  // パラメータからIDを取得
+  const userId = req.params.id;
+
+  // SQL文を作成
+  const sql = `SELECT * FROM following LEFT JOIN users ON following.following_id=users.id WHERE followed_id=${userId};`;
+
+  // SQLを実行(db.all)
+  db.all(sql, (err, rows) => {
+    // エラーのとき
+    if (err) {
+      res.status(500).send({ error: err });
+      db.close();
+      return;
+    }
+
+    // フォロワーがいないとき404
+    if (!rows) {
+      res.status(404).send({ error: 'フォロワーが見つかりませんでした。' });
+      db.close();
+      return;
+    }
+
+    // フォロワーがいたとき200
+    res.status(200).json(rows);
   });
 
-  // DBをクローズ
+  // DBクローズ
   db.close();
 });
 
-// followingを取得する
+// フォロワー情報の取得API
+app.get('/api/v1/users/:id/followers/:follower_id', (req, res) => {
+  // DB接続
+  const db = new sqlit3.Database(dbPath);
+  
+  // パラメータ取得
+  const userId = req.params.id;
+  const followerId = req.params.follower_id;
+
+  // SQL文作成
+  const sql = `SELECT * FROM following LEFT JOIN users ON following.following_id=users.id WHERE followed_id=${userId} AND following_id=${followerId};`;
+
+  // SQL実行(db.get)
+  db.get(sql, (err, row) => {
+    // エラー処理
+    if (err) {
+      res.status(500).send({ error: err });
+      db.close();
+      return;
+    }
+
+    // 見つからなかったとき
+    if (!row) {
+      res.status(404).send({ error: 'フォロワーのユーザー情報を取得できませんでした。' });
+      db.close();
+      return;
+    }
+
+    // 正常処理
+    res.status(200).json(row);
+  });
+  // DBクローズ
+  db.close();
+})
+
+// フォローしているユーザー一覧を取得する
 app.get('/api/v1/users/:id/following', (req, res) => {
   // DBに接続
   const db = new sqlit3.Database(dbPath);
@@ -56,7 +112,143 @@ app.get('/api/v1/users/:id/following', (req, res) => {
   db.close();
 });
 
+// フォローしているユーザー情報を取得
+app.get('/api/v1/users/:id/following/:followed_id', (req, res) => {
+  // DBに接続
+  const db = new sqlit3.Database(dbPath);
 
+  // パラメータを取得
+  const id = req.params.id;
+  const followedId = req.params.followed_id;
+  
+  // SQLを作成
+  const sql = `SELECT * FROM following LEFT JOIN users ON following.followed_id=users.id WHERE following_id=${id} AND followed_id=${followedId};`;
+
+  // クエリ実行(単一データなのでdb.get())
+  db.get(sql, (err, row) => {
+    if (!row) {
+      res.status(404).send({ error: 'User is not found.' });
+    } else {
+      // データを返す
+      res.status(200).json(row);
+    }
+  });
+
+  // DBをクローズ
+  db.close();
+});
+
+// フォローするAPI
+app.post('/api/v1/users/:id/following/:followed_id', async (req, res) => {
+  // パラメータを取得
+  const userId = req.params.id;
+  const followedId = req.params.followed_id;
+
+  // 自分をフォローできないようにする
+  if (userId === followedId) {
+    res.status(400).send({error: '自分をフォローすることはできません。'});
+    return;
+  }
+
+  // DBに接続
+  const db = new sqlit3.Database(dbPath);
+
+  // すでにフォローしているかチェックする
+  const isFollowingSql = `SELECT * FROM following WHERE following_id=${userId} AND followed_id=${followedId}`;
+
+  db.get(isFollowingSql, (err, row) => {
+    if (err) {
+      res.status(500).send({ error: err });
+      db.close();
+      return;
+    }
+    if (row) {
+      res.status(400).send({ error: 'すでにフォローしています。' });
+      db.close();
+      return;
+    }
+  });
+
+  // SQLを作成
+  const sql = `INSERT INTO following (following_id, followed_id) VALUES (${userId}, ${followedId})`;
+
+  // クエリ実行(runメソッドを利用)
+  try {
+    await run(sql, db);
+    res.status(201).send({message: 'フォローしました'});
+  } catch (e) {
+    // エラー処理
+    res.status(500).send({ error: e });
+  }
+
+  // DBをクローズ
+  db.close();
+});
+
+/**
+ * フォローを解除するAPI
+ */
+app.delete('/api/v1/users/:id/following/:followed_id', async (req, res) => {
+  // 存在チェック
+  // DB接続
+  const db = new sqlit3.Database(dbPath);
+
+  // パラメータ取得
+  const userId = req.params.id;
+  const followedId = req.params.followed_id;
+
+  // チェック用SQL作成
+  const existFollowSql = `SELECT * FROM following WHERE following_id=${userId} AND followed_id=${followedId}`;
+
+  // SQL実行(1件取得なので、db.get)
+  db.get(existFollowSql, (err, row) => {
+    // サーバーエラー
+    if (err) {
+      res.status(500).send({ error: err });
+      db.close();
+      return;
+    }
+
+    // 存在していなかったらエラー処理
+    if (!row) {
+      res.status(404).send({ error: 'フォローしていません。' });
+      // DBクローズ
+      db.close();
+      return;
+    }
+  });
+
+  // 存在していたらフォロー解除処理
+  // フォロー解除用SQL作成
+  const unFollowSql = `DELETE FROM following WHERE following_id=${userId} AND followed_id=${followedId}`;
+
+  // SQL実行(runメソッド)
+  try {
+    await run(unFollowSql, db);
+    res.status(200).send({message: 'フォローを解除しました。'});
+  } catch (e) {
+    res.status(500).send({ error: e });
+  }
+
+  // DBクローズ
+  db.close();
+});
+
+// usersを全件取得
+app.get('/api/v1/users', (req, res) => {
+  // DBに接続
+  const db = new sqlit3.Database(dbPath);
+
+  // 全件取得なのでallを使う
+  db.all('SELECT * FROM users', (err, rows) => {
+    // エラー処理については書かない
+    // まずは正常系だけ
+    res.json(rows);
+  });
+
+  // DBをクローズ
+  db.close();
+});
 
 // 単一のuserのAPI
 app.get('/api/v1/users/:id', (req, res) => {
@@ -197,7 +389,6 @@ app.delete('/api/v1/users/:id', async (req, res) => {
   // DBに接続
   const db = new sqlit3.Database(dbPath);
   const id = req.params.id;
-
 
   // 現在のユーザー情報を取得して、リクエストにデータが入っていたらそれらを
   // そうでなければ、元のデータを使うようにする
