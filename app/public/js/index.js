@@ -56,6 +56,17 @@ const indexModule = (() => {
 
       return usersModule.setExistingValue(uid);
 
+    // user.htmlにアクセスしたら
+    case '/user.html':
+      // URLからuidを取り出す
+      const userId = window.location.search.split('?uid=')[1];
+
+      // 各値をセットする
+      return {
+        setExistingValue: usersModule.setExistingValue(userId),
+        fetchAllUsersForUserPage: followingModule.fetchAllUsersForUserPage(userId),
+      };
+
     default:
       break;
   }

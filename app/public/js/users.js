@@ -41,7 +41,6 @@ const usersModule = (() => {
         alert('なんらかのエラーが発生しました。');
         break;
     }
-
   };
 
   // usersModuleの中で使えるメソッドを定義していく
@@ -63,7 +62,7 @@ const usersModule = (() => {
         // テンプレートリテラルでHTMLを作成
         const body = `<tr>
                         <td>${user.id}</td>
-                        <td>${user.name}</td>
+                        <td><a href="user.html?uid=${user.id}">${user.name}</a></td>
                         <td>${user.profile}</td>
                         <td>${user.date_of_birth}</td>
                         <td>${user.created_at}</td>
@@ -147,6 +146,6 @@ const usersModule = (() => {
 
         return handleError(res);
       }
-    }
+    },
   }
 })();
