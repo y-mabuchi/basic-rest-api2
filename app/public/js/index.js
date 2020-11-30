@@ -83,6 +83,16 @@ const indexModule = (() => {
         setExistingValue: usersModule.setExistingValue(followingpageUserId),
         fetchAllUsersForUserPage: followingModule.fetchFollowingUsers(followingpageUserId),
       };
+    
+    // follower.htmlにアクセスしたら
+    case '/follower.html':
+      const followerpageUserId = window.location.search.split('?uid=')[1];
+
+      // 各値をセットする
+      return {
+        setExistingValue: usersModule.setExistingValue(followerpageUserId),
+        fetchAllUsersForUserPage: followingModule.fetchAllFollowers(followerpageUserId),
+      };
 
     default:
       break;
