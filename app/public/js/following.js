@@ -90,5 +90,38 @@ const followingModule = (() => {
         document.getElementById('users-list').insertAdjacentHTML('beforeend', body);
       });
     },
+
+    // フォロワー一覧を表示します
+    fetchAllFollowers: async (uid) => {
+      // APIを叩く
+      const url = `${BASE_URL}/${uid}/followers`;
+      const res = await fetch(url);
+
+      // JSONをパース
+      const followers = await res.json();
+
+      // エラーチェック
+      if (res.status === 404 || res.status === 500) {
+        alert(followers.error);
+        return;
+      }
+
+      // フォロワー一覧を表示
+      followers.map(user => {
+        // bodyを組み立て
+        const body = `<tr>
+                        <td>${user.id}</td>
+                        <td>${user.name}</td>
+                        <td>${user.profile}</td>
+                        <td>${user.date_of_birth}</td>
+                        <td>${user.created_at}</td>
+                        <td>${user.updated_at}</td>
+                        <td>-</td>
+                      </tr>`;
+
+        // users-listに追加
+        document.getElementById('users-list').insertAdjacentHTML('beforeend', body);
+      });
+    }
   }
 })();
