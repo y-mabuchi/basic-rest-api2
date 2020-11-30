@@ -61,14 +61,30 @@ const indexModule = (() => {
       // URLからuidを取り出す
       const userId = window.location.search.split('?uid=')[1];
 
+      // フォロー、フォロワーリンクのDOM作成
+      const followingLink = `<a href="./following.html?uid=${userId}">フォロー一覧</a>`;
+      const followerLink = `<a href="./follower.html?uid=${userId}">フォロワー一覧</a>`;
+
+      document.getElementById('js-following-link').innerHTML = followingLink;
+      document.getElementById('js-follower-link').innerHTML = followerLink;
+
       // 各値をセットする
       return {
         setExistingValue: usersModule.setExistingValue(userId),
         fetchAllUsersForUserPage: followingModule.fetchAllUsersForUserPage(userId),
       };
+    
+    // following.htmlにアクセスしたら
+    case '/following.html':
+      const followingpageUserId = window.location.search.split('?uid=')[1];
+
+      // 各値をセットする
+      return {
+        setExistingValue: usersModule.setExistingValue(followingpageUserId),
+        fetchAllUsersForUserPage: followingModule.fetchFollowingUsers(followingpageUserId),
+      };
 
     default:
       break;
   }
-
 })();
