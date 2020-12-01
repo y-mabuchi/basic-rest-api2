@@ -3,6 +3,14 @@
 const indexModule = (() => {
   const path = window.location.pathname;
 
+  const createFollowerLink = (uid) => {
+    return `<a href="./follower.html?uid=${uid}">フォロワー一覧</a>`;
+  };
+
+  const createFollowingLink = (uid) => {
+    return `<a href="./following.html?uid=${uid}">フォロー一覧</a>`;
+  };
+
   switch (path) {
     // ルートにアクセスしたら
     case '/':
@@ -62,11 +70,8 @@ const indexModule = (() => {
       const userId = window.location.search.split('?uid=')[1];
 
       // フォロー、フォロワーリンクのDOM作成
-      const followingLink = `<a href="./following.html?uid=${userId}">フォロー一覧</a>`;
-      const followerLink = `<a href="./follower.html?uid=${userId}">フォロワー一覧</a>`;
-
-      document.getElementById('js-following-link').innerHTML = followingLink;
-      document.getElementById('js-follower-link').innerHTML = followerLink;
+      document.getElementById('js-following-link').innerHTML = createFollowingLink(userId);
+      document.getElementById('js-follower-link').innerHTML = createFollowerLink(userId);
 
       // 各値をセットする
       return {
@@ -78,10 +83,24 @@ const indexModule = (() => {
     case '/following.html':
       const followingpageUserId = window.location.search.split('?uid=')[1];
 
+      document.getElementById('js-follower-link').innerHTML = createFollowerLink(followingpageUserId);
+
       // 各値をセットする
       return {
         setExistingValue: usersModule.setExistingValue(followingpageUserId),
         fetchAllUsersForUserPage: followingModule.fetchFollowingUsers(followingpageUserId),
+      };
+    
+    // follower.htmlにアクセスしたら
+    case '/follower.html':
+      const followerpageUserId = window.location.search.split('?uid=')[1];
+
+      document.getElementById('js-following-link').innerHTML = createFollowingLink(followerpageUserId);
+
+      // 各値をセットする
+      return {
+        setExistingValue: usersModule.setExistingValue(followerpageUserId),
+        fetchAllUsersForUserPage: followingModule.fetchAllFollowers(followerpageUserId),
       };
 
     default:

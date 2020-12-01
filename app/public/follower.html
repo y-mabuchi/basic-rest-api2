@@ -1,14 +1,73 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Re:ゼロから始めるフォローページ</title>
+  <!-- Load scripts -->
+  <!-- 呼び出す側(index.js)は、あとから呼び出さないとエラーになる -->
+  <script src="js/users.js" defer></script>
+  <script src="js/search.js" defer></script>
+  <script src="js/following.js" defer></script>
+  <script src="js/index.js" defer></script>
 </head>
 
 <body>
-  <p>This is follower.html</p>
+  <!-- header -->
+  <header class="header">
+    <h1>Re:ゼロから始めるフォローページ</h1>
+  </header><!-- /header -->
+
+  <!-- main -->
+  <main class="main">
+    <!-- action -->
+    <section class="action">
+      <h2 class="action-tit">操作</h2>
+      <div id="js-following-link">
+        <a href="./follower.html">フォロワー一覧</a>
+      </div>
+    </section><!-- /action -->
+
+    <!-- info -->
+    <section class="info">
+      <h2 class="info-tit">user information</h2>
+      <div>
+        <label for="name">name:</label>
+        <input type="text" id="name" readonly>
+      </div>
+      <div>
+        <label for="profile">profile:</label>
+        <input type="text" id="profile" readonly>
+      </div>
+      <div>
+        <label for="date-of-birth">date of birth:</label>
+        <input type="text" id="date-of-birth" readonly>
+      </div>
+    </section><!-- /info -->
+
+    <!-- users -->
+    <section class="users">
+      <h2 class="users-tit">フォロワー一覧</h2>
+      <table class="users-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>ユーザー名</th>
+            <th>プロフィール</th>
+            <th>誕生日</th>
+            <th>登録日時</th>
+            <th>更新日時</th>
+            <th>メニュー</th>
+          </tr>
+        </thead>
+        <!-- JavaScriptでAPIと通信して、結果を追加する -->
+        <tbody id="users-list">
+        </tbody>
+      </table>
+    </section><!-- /users -->
+  </main><!-- /main -->
+
 </body>
 
 </html>
