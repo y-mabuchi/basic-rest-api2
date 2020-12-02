@@ -50,7 +50,7 @@ const followingModule = (() => {
                         <td>${user.date_of_birth}</td>
                         <td>${user.created_at}</td>
                         <td>${user.updated_at}</td>
-                        <td>${btn}</td>
+                        <td>-</td>
                       </tr>`;
 
         // users-listにDOMを追加
