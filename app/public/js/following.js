@@ -122,6 +122,18 @@ const followingModule = (() => {
         // users-listに追加
         document.getElementById('users-list').insertAdjacentHTML('beforeend', body);
       });
+    },
+
+    // フォローの状態によってボタンを表示します
+    createActionButton: async (uid, otherId) => {
+      // フォローボタンを宣言
+      const followButton = '<button id="follow-btn">Follow</button>';
+      // フォロー解除ボタンを宣言
+      const unFollowButton = '<button id="unfollow-btn">UnFollow</button>';
+
+      const btn = await (isFollow(uid, otherId)) ? unFollowButton : followButton;
+
+      document.getElementById('js-follow-btn').innerHTML = btn;
     }
   }
 })();

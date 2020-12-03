@@ -102,6 +102,30 @@ const indexModule = (() => {
         setExistingValue: usersModule.setExistingValue(followerpageUserId),
         fetchAllUsersForUserPage: followingModule.fetchAllFollowers(followerpageUserId),
       };
+    
+    // user_info.htmlにアクセスしたら
+    case '/user_info.html':
+      // クエリパラメータを取得して、最初の?を除去
+      const query = window.location.search.substring(1);
+      const queryObj = {};
+      // 複数パラメータを分割します
+      const parameters = query.split('&');
+
+      // クエリごとオブジェクトに格納します
+      parameters.map(param => {
+        const element = param.split('=');
+        const key = element[0];
+        const value = element[1];
+        queryObj[key] = value;
+      });
+
+      const from = queryObj.from;
+      const to = queryObj.to;
+
+      return {
+        setExistingValue: usersModule.setExistingValue(to),
+        createActionButton: followingModule.createActionButton(from, to),
+      }
 
     default:
       break;
