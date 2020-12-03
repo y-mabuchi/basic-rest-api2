@@ -83,7 +83,7 @@ const followingModule = (() => {
                         <td>${user.date_of_birth}</td>
                         <td>${user.created_at}</td>
                         <td>${user.updated_at}</td>
-                        <td><button>フォローを解除する</button></td>
+                        <td>-</td>
                       </tr>`;
 
         // users-listに追加
